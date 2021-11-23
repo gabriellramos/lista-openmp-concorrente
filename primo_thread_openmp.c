@@ -3,14 +3,18 @@
 #include <math.h>
 #include <sys/time.h>
 #include <pthread.h>
-
+#include <stdlib.h>
 #define QTD_MAX 6
 #define NUM_EXEC 10
 #define NUM_THREADS getNumThreads()
 
 long int N, num_threads;
-long int qtdElementos[QTD_MAX] = {100000, 200000, 50000, 10000000, 50000000, 500000000 };
+long int qtdElementos[QTD_MAX] = {10000, 20000, 
+								50000, 1000000,
+								5000000, 150000000 };
 int   qtdThreads[QTD_MAX] = {2, 4, 8, 16, 32, 64};
+
+	FILE *mainF;
 
 pthread_mutex_t mutexsum;
 int inicio=0, fim=999, count=0;
@@ -25,16 +29,19 @@ int getNumThreads(){
 }
 
 int main(){
-	int i, j;
+	long int i, j;
 	double tempo, soma=0,aux;
 	clock_t begin, end;
+	FILE *file = fopen("graph.txt","w");
+	mainF = fopen("mainF.txt","w");
+	fprintf (file,"\tThread Main\tOpenMP\tPthread\n");
 	
 	for (j=0;j<QTD_MAX; j++){
 		N = qtdElementos[j];
 		num_threads = qtdThreads[j];
 		soma=0;	
 		printf ("\n-----------------------------------------------------\n");
-		printf ("Executando N = %d na Thread principal\n", N, getNumThreads());
+		printf ("Executando N = %ld na Thread principal\n", N, getNumThreads());
 	
 		for (i=0;i<NUM_EXEC; i++){
 			//inicializando as variáveis
@@ -44,14 +51,14 @@ int main(){
 			end = clock();
 			tempo = (double)(end-begin)/CLOCKS_PER_SEC;
 			soma+=tempo;
-			printf ("Execucao %2d com %d numeros em %lf s\n",i+1,N,tempo);
+			printf ("Execucao %2d com %ld numeros em %lf s\n",i+1,N,tempo);
 		}
 		printf ("Media de 10 execucoes com 1 thread em %lf s\n\n\n",soma/NUM_EXEC);
 		
+		fprintf (file,"%d\t%ld\t",N,soma/NUM_EXEC);
+		
 		printf ("Executando N = %d com %d Threads\n", N, getNumThreads());
 		for (i=0;i<NUM_EXEC;i++){
-			//inicializando as variáveis
-			inicio=0; fim=999; count=0;
 			
 			//inicializando contador de tempo
 			begin = clock();
@@ -64,7 +71,7 @@ int main(){
 		}
 		
 		printf ("Media de 10 execucoes com openmp em %lf s\n\n",soma/NUM_EXEC);
-	    
+	    fprintf (file,"%ld\t",soma/NUM_EXEC);
 		soma=0;
 	
 		for (i=0;i<NUM_EXEC;i++){
@@ -79,14 +86,15 @@ int main(){
 			soma+=tempo;
 			printf ("Execucao %2d thread em %lf s\n",i+1,tempo);
 		}
-		printf ("Media de 10 execucoes com threads em %lf s\n",soma/NUM_EXEC);
+		fprintf (file,"%ld\n",soma/NUM_EXEC);
+		//printf ("Media de 10 execucoes com threads em %lf s\n",soma/NUM_EXEC);
 	}
     return 0;
 }
 
 
 void imprimePrimos(int tid){
-	int cont=0,i, k,j;
+	long int cont=0,i, k,j;
 	int id = tid;
 	
 	k=0;
@@ -103,11 +111,11 @@ void imprimePrimos(int tid){
 		}
 		
 		if (cont){
-		 //	printf ("%5d\t",i);
+		 	printf ("%5d\t",i);
 			k++; 
 			count++;
 			if (k==10){
-		//		printf ("\n");
+				printf ("\n");
 				k=0;
 			}
 		}
@@ -117,7 +125,7 @@ void imprimePrimos(int tid){
 
 
 void imprimePrimosSemThreads(int tid){
-	int cont=0,i, k,j;
+	long	int cont=0,i, k,j;
 	int id = tid;
 	
 	k=0;
@@ -132,15 +140,21 @@ void imprimePrimosSemThreads(int tid){
 		}
 		
 		if (cont){
-			//	printf ("%5d\t",i);
+			fprintf (mainF,"%5d\t",i);
+			k++; 
+			count++;
+			if (k==10){
+				fprintf (mainF,"\n");
+				k=0;
+			}
 		}
 	}
-
+	
 }
 
 
 void OpenMP(){	
-	int thread_id, i;
+	long	int thread_id, i;
 	//setting threads max
 	omp_set_num_threads(NUM_THREADS);
 	
@@ -162,7 +176,7 @@ void Threads(){
 	pthread_mutex_init(&mutexsum, NULL);
 	pthread_t threads[NUM_THREADS];
 	
-	int i, status;
+	long int i, status;
 	for (i=0;i<NUM_THREADS;i++){
 		status = pthread_create(&(threads[i]), NULL, imprimePrimosThreads, (void*)i);
 		_sleep(1);
@@ -178,7 +192,7 @@ void Threads(){
 
 
 void *imprimePrimosThreads(void *tid){
-	int cont=0,i,aux,j, k;
+	long int cont=0,i,aux,j, k;
 	int id = (int)tid;	
 
 	pthread_mutex_lock (&mutexsum);
@@ -195,10 +209,10 @@ void *imprimePrimosThreads(void *tid){
 		}
 		
 		if (cont){
-		//	printf ("%5d\t",i);
+			printf ("%5d\t",i);
 			k++;
 			if (k==10){
-		//		printf ("\n");
+				printf ("\n");
 				k=0;
 			}
 		}
