@@ -4,15 +4,15 @@
 #include <sys/time.h>
 #include <pthread.h>
 #include <stdlib.h>
-#define QTD_MAX 6   //bora testar com esses
-#define NUM_EXEC 1
+#define QTD_MAX 6  
+#define NUM_EXEC 10
 #define NUM_THREADS getNumThreads()
 #define INTERVALO getIntervalo()
 
 pthread_mutex_t mutexsum;
 int inicio=0, fim=999, count=0;
 long int TAM, num_threads, inter;
-long int qtdElementos[QTD_MAX] = {10000, 200000, 500000, 1000000,50000000, 100000000};
+long int qtdElementos[QTD_MAX] = {1000, 20000, 50000, 100000, 500000, 1000000};
 int   qtdThreads[QTD_MAX] = {2, 4, 8, 16, 32, 64};
 FILE *mainF;
 
